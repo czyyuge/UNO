@@ -135,7 +135,18 @@ public class GameFrame extends JFrame {
                     break;
                 case Message.GAME_OVER:
                     String winner = (String) msg.getData("winner");
-                    JOptionPane.showMessageDialog(this, "Game Over! Winner: " + winner);
+                    int choice = JOptionPane.showConfirmDialog(this,
+                            "Game Over! Winner: " + winner + "\nReturn to lobby?",
+                            "Game Over", JOptionPane.YES_NO_OPTION);
+                    if (choice == JOptionPane.YES_OPTION) {
+                        client.send(new Message(Message.LEAVE_ROOM));
+                        RoomFrame roomFrame = new RoomFrame(client);
+                        client.setRoomFrame(roomFrame);
+                        roomFrame.setVisible(true);
+                        dispose();
+                    } else {
+                        dispose();
+                    }
                     break;
                 default:
                     break;

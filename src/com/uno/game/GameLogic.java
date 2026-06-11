@@ -14,6 +14,8 @@ public class GameLogic {
     private String winner;
     private int cardsToDraw;
     private boolean pendingDraw;
+    private String unoOffender;
+    private boolean hasDrawnThisTurn;
 
     public GameLogic(List<Player> players) {
         this.players = players;
@@ -23,6 +25,8 @@ public class GameLogic {
         this.gameOver = false;
         this.cardsToDraw = 0;
         this.pendingDraw = false;
+        this.unoOffender = null;
+        this.hasDrawnThisTurn = false;
         initGame();
     }
 
@@ -41,11 +45,29 @@ public class GameLogic {
             firstCard = deck.drawCard();
         }
         deck.discard(firstCard);
+        applyStartingCardEffect(firstCard);
+    }
+
+    private void applyStartingCardEffect(Card card) {
+        String type = card.getType();
+        switch (type) {
+            case GameConstants.TYPE_SKIP:
+                nextPlayer();
+                break;
+            case GameConstants.TYPE_REVERSE:
+                direction *= -1;
+                break;
+            case GameConstants.TYPE_DRAW_TWO:
+                cardsToDraw = 2;
+                pendingDraw = true;
+                break;
+        }
     }
 
     public boolean playCard(Player player, Card card, String chosenColor) {
         if (gameOver) return false;
         if (!getCurrentPlayer().equals(player)) return false;
+        if (pendingDraw && cardsToDraw > 0) return false;
         Card topCard = deck.getTopCard();
         if (!card.canPlayOn(topCard)) return false;
         if (!player.getHand().contains(card)) return false;
@@ -63,6 +85,9 @@ public class GameLogic {
         }
 
         applyCardEffect(card);
+        if (!player.isSaidUno() && player.getCardCount() == 1) {
+            unoOffender = player.getName();
+        }
         return true;
     }
 
@@ -103,6 +128,9 @@ public class GameLogic {
             return cards.isEmpty() ? null : cards.get(0);
         }
 
+        if (hasDrawnThisTurn) return null;  // 每回合最多摸 1 张
+        hasDrawnThisTurn = true;
+
         Card card = deck.drawCard();
         if (card != null) {
             player.addCard(card);
@@ -115,16 +143,32 @@ public class GameLogic {
 
     public void callUno(Player player) {
         player.setSaidUno(true);
-    }
-
-    public void checkUnoPenalty(Player player) {
-        if (player.hasUno() && !player.isSaidUno()) {
-            List<Card> penalty = deck.drawCards(2);
-            for (Card c : penalty) player.addCard(c);
+        if (unoOffender != null && unoOffender.equals(player.getName())) {
+            unoOffender = null;
         }
     }
 
+    public String checkAndClearUnoOffender() {
+        if (unoOffender == null) return null;
+        Player offender = getPlayerByName(unoOffender);
+        unoOffender = null;
+        if (offender != null && !offender.isSaidUno() && offender.getCardCount() == 1) {
+            List<Card> penalty = deck.drawCards(2);
+            for (Card c : penalty) offender.addCard(c);
+            return offender.getName();
+        }
+        return null;
+    }
+
+    private Player getPlayerByName(String name) {
+        for (Player p : players) {
+            if (p.getName().equals(name)) return p;
+        }
+        return null;
+    }
+
     private void nextPlayer() {
+        hasDrawnThisTurn = false;
         currentPlayerIndex = (currentPlayerIndex + direction + players.size()) % players.size();
     }
 

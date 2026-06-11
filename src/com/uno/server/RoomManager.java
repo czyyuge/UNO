@@ -94,10 +94,10 @@ public class RoomManager {
 
         switch (msg.getType()) {
             case Message.PLAY_CARD:
+                checkAndApplyUnoPenalty(room, logic);
                 Card card = (Card) msg.getData("card");
                 String chosenColor = (String) msg.getData("chosenColor");
                 if (card != null && logic.playCard(player, card, chosenColor)) {
-                    logic.checkUnoPenalty(player);
                     if (logic.isGameOver()) {
                         broadcastToRoom(room, MessageUtils.createGameOverMessage(logic.getWinner()));
                         return;
@@ -106,6 +106,7 @@ public class RoomManager {
                 }
                 break;
             case Message.DRAW_CARD:
+                checkAndApplyUnoPenalty(room, logic);
                 logic.drawCard(player);
                 broadcastGameState(room);
                 break;
@@ -120,6 +121,15 @@ public class RoomManager {
                     broadcastGameState(room);
                 }
                 break;
+        }
+    }
+
+    private void checkAndApplyUnoPenalty(GameRoom room, GameLogic logic) {
+        String offender = logic.checkAndClearUnoOffender();
+        if (offender != null) {
+            broadcastToRoom(room, new Message(Message.CHAT, null,
+                    "[System] " + offender + " forgot to call UNO! Draws 2 penalty cards."));
+            broadcastGameState(room);
         }
     }
 
