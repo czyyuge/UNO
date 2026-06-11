@@ -55,7 +55,12 @@ public class Card implements Serializable {
         if (GameConstants.TYPE_WILD_DRAW_FOUR.equals(type)) {
             return "WILD +4";
         }
-        return color + " " + type;
+        switch (type) {
+            case GameConstants.TYPE_SKIP: return color + " SKP";
+            case GameConstants.TYPE_REVERSE: return color + " REV";
+            case GameConstants.TYPE_DRAW_TWO: return color + " +2";
+            default: return color + " " + type.substring(0, 3);
+        }
     }
 
     @Override

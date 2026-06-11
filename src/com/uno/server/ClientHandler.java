@@ -80,7 +80,7 @@ public class ClientHandler implements Runnable {
                 if (currentRoom != null) {
                     Player p = currentRoom.getPlayer(playerName);
                     if (p != null) {
-                        p.setReady(true);
+                        p.setReady(!p.isReady());
                         broadcastToRoom(currentRoom, new Message(Message.PLAYER_READY, playerName, null));
                         sendRoomUpdate(currentRoom);
                         if (currentRoom.allReady()) {

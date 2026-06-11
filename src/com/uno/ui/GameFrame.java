@@ -63,8 +63,9 @@ public class GameFrame extends JFrame {
         JPanel centerPanel = new JPanel(new GridBagLayout());
         centerPanel.setBackground(new Color(0, 100, 0));
         topCardButton = new JButton("UNO");
-        topCardButton.setPreferredSize(new Dimension(120, 180));
-        topCardButton.setFont(new Font("Arial", Font.BOLD, 18));
+        topCardButton.setPreferredSize(new Dimension(140, 180));
+        topCardButton.setFont(new Font("Arial", Font.BOLD, 14));
+        topCardButton.setMargin(new Insets(2, 2, 2, 2));
         topCardButton.setEnabled(false);
         centerPanel.add(topCardButton);
         add(centerPanel, BorderLayout.CENTER);
@@ -111,6 +112,7 @@ public class GameFrame extends JFrame {
         });
     }
 
+    @SuppressWarnings("unchecked")
     private void handleMessage(Message msg) {
         SwingUtilities.invokeLater(() -> {
             switch (msg.getType()) {
@@ -187,9 +189,11 @@ public class GameFrame extends JFrame {
 
     private JButton createCardButton(Card card, boolean myTurn) {
         JButton btn = new JButton(card.toString());
-        btn.setPreferredSize(new Dimension(90, 130));
+        btn.setPreferredSize(new Dimension(110, 130));
+        btn.setFont(new Font("Arial", Font.BOLD, 12));
         btn.setBackground(CardUtils.getSwingColor(card.getColor()));
         btn.setForeground(GameConstants.COLOR_YELLOW.equals(card.getColor()) ? Color.BLACK : Color.WHITE);
+        btn.setMargin(new Insets(2, 2, 2, 2));
         btn.setEnabled(myTurn);
         btn.addActionListener(e -> {
             if (!myTurn) return;

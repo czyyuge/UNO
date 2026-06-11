@@ -23,8 +23,8 @@ public class RoomFrame extends JFrame {
     private JButton startButton;
     private JButton leaveButton;
     private JButton refreshButton;
-    private String currentRoomId;
     private boolean inRoom;
+    private boolean pendingJoin = false;
 
     public RoomFrame(Client client) {
         this.client = client;
@@ -54,6 +54,8 @@ public class RoomFrame extends JFrame {
         roomButtonPanel.add(createRoomButton);
         roomPanel.add(roomButtonPanel, BorderLayout.SOUTH);
 
+        roomPanel.setPreferredSize(new Dimension(200, roomPanel.getPreferredSize().height));
+        roomPanel.setMinimumSize(new Dimension(200, 0));
         add(roomPanel, BorderLayout.WEST);
 
         // Center: Player list in current room
@@ -61,6 +63,8 @@ public class RoomFrame extends JFrame {
         centerPanel.setBorder(new TitledBorder("Current Room"));
         playerListModel = new DefaultListModel<>();
         playerList = new JList<>(playerListModel);
+        playerList.setPrototypeCellValue("玩家名 (00 cards) [Ready]"); 
+        playerList.setFixedCellWidth(-1);
         centerPanel.add(new JScrollPane(playerList), BorderLayout.CENTER);
 
         JPanel actionPanel = new JPanel(new GridLayout(2, 2, 5, 5));
@@ -100,8 +104,8 @@ public class RoomFrame extends JFrame {
             if (inRoom) {
                 client.send(new Message(Message.LEAVE_ROOM));
                 inRoom = false;
-                currentRoomId = null;
                 playerListModel.clear();
+                updateButtonStates();
             }
         });
         chatField.addActionListener(e -> {
@@ -129,8 +133,8 @@ public class RoomFrame extends JFrame {
             return;
         }
         String roomId = selected.split(" ")[0];
-        currentRoomId = roomId;
-        inRoom = true;
+        pendingJoin = true;
+        inRoom = false;
         client.send(new Message(Message.JOIN_ROOM, null, roomId));
         updateButtonStates();
     }
@@ -168,11 +172,21 @@ public class RoomFrame extends JFrame {
                 case Message.UPDATE_ROOM:
                     playerListModel.clear();
                     List<Player> players = (List<Player>) msg.getData("players");
+                    boolean foundMe = false;
                     if (players != null) {
                         for (Player p : players) {
                             String status = p.isReady() ? " [Ready]" : "";
                             playerListModel.addElement(p.getName() + " (" + p.getCardCount() + " cards)" + status);
+                            if (p.getName().equals(client.getUsername())) {
+                                foundMe = true;
+                                readyButton.setText(p.isReady() ? "Unready" : "Ready");
+                            }
                         }
+                    }
+                    if (pendingJoin && foundMe) {
+                        pendingJoin = false;
+                        inRoom = true;
+                        updateButtonStates();
                     }
                     break;
                 case Message.CHAT:
@@ -186,6 +200,10 @@ public class RoomFrame extends JFrame {
                     break;
                 case Message.ERROR:
                     JOptionPane.showMessageDialog(this, msg.getContent());
+                    if (pendingJoin) {
+                        pendingJoin = false;
+                        updateButtonStates();
+                    }
                     break;
                 default:
                     break;
