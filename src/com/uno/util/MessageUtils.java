@@ -40,6 +40,13 @@ public class MessageUtils {
         return new Message(Message.CHAT, sender, text);
     }
 
+    public static Message createQuickPlayMessage(String sender, Card card, String chosenColor) {
+        Message msg = new Message(Message.QUICK_PLAY, sender, null);
+        msg.putData("card", card);
+        msg.putData("chosenColor", chosenColor);
+        return msg;
+    }
+
     public static Message createGameOverMessage(String winner) {
         Message msg = new Message(Message.GAME_OVER);
         msg.putData("winner", winner);

@@ -114,6 +114,18 @@ public class RoomManager {
                 logic.callUno(player);
                 broadcastToRoom(room, new Message(Message.CALL_UNO, player.getName(), null));
                 break;
+            case Message.QUICK_PLAY:
+                checkAndApplyUnoPenalty(room, logic);
+                Card quickCard = (Card) msg.getData("card");
+                String quickColor = (String) msg.getData("chosenColor");
+                if (quickCard != null && logic.quickPlayCard(player, quickCard, quickColor)) {
+                    if (logic.isGameOver()) {
+                        broadcastToRoom(room, MessageUtils.createGameOverMessage(logic.getWinner()));
+                        return;
+                    }
+                    broadcastGameState(room);
+                }
+                break;
             case Message.COLOR_PICKED:
                 Card top = logic.getTopCard();
                 if (top != null && GameConstants.isWildCard(top.getType())) {

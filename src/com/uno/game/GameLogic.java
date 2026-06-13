@@ -17,6 +17,40 @@ public class GameLogic {
     private String unoOffender;
     private boolean hasDrawnThisTurn;
 
+    public boolean canQuickPlay(Player player, Card card) {
+        if (gameOver) return false;
+        if (getCurrentPlayer().equals(player)) return false;
+        if (pendingDraw && cardsToDraw > 0) return false;
+        if (GameConstants.isWildCard(card.getType())) return false;
+        Card topCard = deck.getTopCard();
+        if (!card.equals(topCard)) return false;
+        if (!player.getHand().contains(card)) return false;
+        return true;
+    }
+
+    public boolean quickPlayCard(Player player, Card card, String chosenColor) {
+        if (!canQuickPlay(player, card)) return false;
+
+        player.removeCard(card);
+        deck.discard(card);
+
+        if (player.hasWon()) {
+            gameOver = true;
+            winner = player.getName();
+            return true;
+        }
+
+        int playerIndex = players.indexOf(player);
+        currentPlayerIndex = playerIndex;
+        hasDrawnThisTurn = false;
+        applyCardEffect(card);
+
+        if (!player.isSaidUno() && player.getCardCount() == 1) {
+            unoOffender = player.getName();
+        }
+        return true;
+    }
+
     public GameLogic(List<Player> players) {
         this.players = players;
         this.deck = new CardDeck();

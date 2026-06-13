@@ -205,16 +205,23 @@ public class GameFrame extends JFrame {
         btn.setBackground(CardUtils.getSwingColor(card.getColor()));
         btn.setForeground(GameConstants.COLOR_YELLOW.equals(card.getColor()) ? Color.BLACK : Color.WHITE);
         btn.setMargin(new Insets(2, 2, 2, 2));
-        btn.setEnabled(myTurn);
+
+        boolean canQuickPlay = !myTurn && topCard != null && card.equals(topCard)
+                && !GameConstants.isWildCard(card.getType());
+        btn.setEnabled(myTurn || canQuickPlay);
+
         btn.addActionListener(e -> {
-            if (!myTurn) return;
             if (GameConstants.isWildCard(card.getType())) {
                 String color = chooseColor();
                 if (color != null) {
-                    client.send(MessageUtils.createPlayCardMessage(myName, card, color));
+                    if (myTurn) {
+                        client.send(MessageUtils.createPlayCardMessage(myName, card, color));
+                    }
                 }
-            } else {
+            } else if (myTurn) {
                 client.send(MessageUtils.createPlayCardMessage(myName, card, null));
+            } else if (canQuickPlay) {
+                client.send(MessageUtils.createQuickPlayMessage(myName, card, null));
             }
         });
         return btn;

@@ -94,6 +94,7 @@ public class ClientHandler implements Runnable {
                     broadcastToRoom(currentRoom, msg);
                 }
                 break;
+            case Message.QUICK_PLAY:
             case Message.PLAY_CARD:
             case Message.DRAW_CARD:
             case Message.CALL_UNO:

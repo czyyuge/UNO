@@ -30,6 +30,7 @@ public class Message implements Serializable {
     public static final String DISCONNECT = "DISCONNECT";
     public static final String UPDATE_ROOM = "UPDATE_ROOM";
     public static final String START_GAME = "START_GAME";
+    public static final String QUICK_PLAY = "QUICK_PLAY";
 
     private String type;
     private String sender;
